@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">StopWatch</string>
+
+    <string name="txtTitleIndex">구간</string>
+    <string name="txtTitleRecord">구간기록</string>
+    <string name="txtTitleTotalTime">전체 시간</string>
+    <string name="btnRecord">구간 기록</string>
+    <string name="btnStart">시작</string>
+</resources>

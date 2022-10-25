@@ -4,28 +4,42 @@
 
 package com.jinsu.homework.stopwatch
 
+import android.R.layout
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.LinearLayout.LayoutParams
+import android.widget.RelativeLayout
+import android.widget.RelativeLayout.RIGHT_OF
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.jinsu.homework.stopwatch.databinding.ActivityMainBinding
+import kotlinx.coroutines.NonCancellable.start
+import java.text.DecimalFormat
+import java.util.*
+import kotlin.concurrent.timer
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    // isRunning = true -> 기록이 측정 중인 상태
-    // isRunning = false -> timer 가 멈춘 상태
+    private var timerTask: Timer? = null
     private var isRunning = false
+    private var mainTime = 0
+    private var lapTime = 0
     private var lapIndex = 0
+    private val formatter = DecimalFormat("00")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "Main Activity : onCreate() called!")
-
         binding = ActivityMainBinding.inflate(layoutInflater).also {
             setContentView(it.root)
         }
-
         with(binding) {
             txtSubTime.isVisible = false
             layoutTitle.isVisible = false
@@ -35,38 +49,162 @@ class MainActivity : AppCompatActivity() {
         with(binding) {
             btnStart.setOnClickListener {
                 isRunning = !isRunning              // 시작 버튼을 누르면 상태가 반대 값으로 변경
+
+                Log.d(TAG, "btnStart clicked! and state : $isRunning")
                 if (isRunning) start() else pause()
             }
-            btnRecord.setOnClickListener {
-                // 구간 기록 버튼 활성화 상태
-
-                // 초기화 버튼 활성화 상태 :
-                if  (isRunning ) {
-
+            // TODO: 구간기록/초기화 버튼 리스너
+            /*btnRecord.setOnClickListener {
+                // 처음 : 구간 기록인데 focusable = false
+                if  (isRunning) {   // not start 상태인데
+                    if (repeatedTime != 0) {
+                        it.isClickable = false
+                    } else {    // not start 인데 시작은 했다면
+                        reset()
+                    }
+                } else {
+                    checkLapTime()
                 }
+            }*/
+
+
+
+            btnRecord.setOnClickListener {
+                checkLapTime()
+            }
+            resetBtn.setOnClickListener { reset() }
+        }
+
+
+    }
+
+
+
+
+
+    @SuppressLint("ResourceType", "SetTextI18n")
+    private fun checkLapTime() {
+        Log.d(TAG, "checkLapTime() called!")
+        val position = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1F)
+
+
+        // 구간 기록 view 화면에 보이도록 설정
+        with(binding) {
+            txtSubTime.isVisible = true
+            layoutTitle.isVisible = true
+            layoutRecord.isVisible = true
+        }
+
+        if (lapIndex == 0)
+            lapTime = mainTime
+
+
+        lapIndex++
+        binding.btnStart.text = lapIndex.toString()
+
+
+
+
+        val txtIndex = TextView(this).apply {
+            textSize = 16f
+            text = formatter.format(lapIndex)
+        }
+        val txtLapTime = TextView(this).apply {
+            textSize = 16f
+            text = "랩타임"
+        }
+        val txtTotalTime = TextView(this).apply {
+            textSize = 16f
+            text = "전체시간"
+        }
+
+
+
+
+        with(binding.layoutRecord) {
+            addView(txtIndex, 0)
+            addView(txtLapTime, -1)
+            addView(txtTotalTime, -1)
+        }
+        lapTime = 0
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // isRunning = true 상태
+    @SuppressLint("SetTextI18n")
+    private fun start() {
+        Log.d(TAG, "start() called!")
+        with(binding) {
+            btnStart.text = "중지"
+            btnStart.setBackgroundResource(R.drawable.borderline_button_red)
+            btnRecord.setTextColor(Color.BLACK)
+        }
+
+        timerTask = timer(period = 1000) {  // period = 1000, 1초
+            mainTime++
+            lapTime++
+            val secTotal = formatter.format(mainTime % 60)
+            val minTotal = formatter.format(mainTime / 60)
+            val hourTotal = formatter.format(mainTime / 3600)
+
+            val secLap = formatter.format(lapTime % 60)
+            val minLap = formatter.format(lapTime / 60)
+            val hourLap = formatter.format(lapTime / 3600)
+
+            runOnUiThread {
+                binding.txtMainTime.text = """$hourTotal:$minTotal.$secTotal"""
+                binding.txtSubTime.text = """$hourLap:$minLap.$secLap"""
             }
         }
     }
-
-    // isRunning = true 상태
-    private fun start() {}
-
     // isRunning = false 상태
     private fun pause() {
+        Log.d(TAG, "pause() called!")
         with(binding.btnStart) {
-            text = "일시중지"
-            setBackgroundResource(R.drawable.borderline_button_red)
+            text = "계속"
+            setBackgroundResource(R.drawable.borderline_button_blue)
+        }
+        timerTask?.cancel()
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun reset() {
+        Log.d(TAG, "reset() called!")
+
+
+        // 초기화 부분
+        timerTask?.cancel()
+        mainTime = 0
+        lapTime = 0
+        lapIndex = 0
+
+        // view 초기상태로 변경
+        with(binding) {
+            btnStart.text = "시작"
+            btnStart.setBackgroundResource(R.drawable.borderline_button_blue)
+            btnRecord.text = "구간기록"
+            txtMainTime.post {
+                txtMainTime.text = "00:00.00"
+
+                // 구간 기록 내 view 제거
+                layoutRecord.removeAllViews()
+                layoutRecord.invalidate()
+            }
         }
 
-    }
-    private fun reset() {
-        with(binding) {
-            txtSubTime.isVisible = false
-            layoutTitle.isVisible = false
-            layoutRecord.isVisible = false
-        }
-    }
-    private fun checkLapTime() {
+        // 구간 기록 타이틀 view invisible 상태로 변경
         with(binding) {
             txtSubTime.isVisible = false
             layoutTitle.isVisible = false
@@ -74,98 +212,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
-
-/*
-package com.jinsu.homework.stopwatch
-
-import android.annotation.SuppressLint
-import android.os.Bundle
-import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
-import com.jinsu.homework.stopwatch.databinding.ActivityMainBinding
-import java.lang.*
-
-
-class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
-    private var isRunning = false
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d("TAG_Activity", "Main Activity : onCreate() called!")
-
-        binding = ActivityMainBinding.inflate(layoutInflater).also {
-            setContentView(it.root)
-        }
-        with(binding) {
-            btnStart.setOnClickListener {
-                isRunning = !isRunning
-                if (isRunning) start() else pause()
-            }
-            btnRecord.setOnClickListener {
-                if (!isRunning) currentLabTime() else reset()
-            }
-        }
-
-        with(binding) {
-            txtSubTime.isVisible = false
-            layoutRecord.isVisible = false
-            layoutTitle.isVisible = false
-        }
-    }
-
-    @SuppressLint("ResourceAsColor")
-    private fun start() {
-        with(binding) {
-            txtSubTime.isVisible = true
-            layoutRecord.isVisible = true
-            layoutTitle.isVisible = true
-        }
-
-        // isRunning 이 false 라면 (start 하지 않은 상태라면)
-        if (isRunning) {
-            with(binding.btnStart) {
-                text = "중지"
-                setBackgroundResource(R.drawable.borderline_button_red)
-            }
-            isRunning = true
-        }
-    }
-
-    // 일시정지 버튼
-    private fun pause() {
-        with(binding) {
-            btnStart.setBackgroundResource(R.drawable.borderline_button_blue)
-            btnStart.text = "계속"
-            btnRecord.text = "초기화"
-        }
-    }
-
-    // 초기화 버튼
-    private fun reset() {
-    }
-
-    private fun currentLabTime() {
-
-    }
-
-
-    private inner class MyThread : Thread() {
-        private var threadFlag = false
-
-        override fun run() {
-            super.run()
-            Log.d("TAG_Thread", "Thread : run() called!")
-            while(!isInterrupted) {
-                try {
-                    // TODO:
-                } catch (e: InterruptedException) {
-                    interrupt()
-                    Log.d("TAG_Thread", "Thread is interrupted!")
-                }
-            }
-        }
-    }
-}*/

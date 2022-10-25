@@ -38,7 +38,8 @@
         android:layout_marginEnd="30dp"
         android:orientation="horizontal"
         android:weightSum="9"
-        android:paddingBottom="10dp">
+        android:paddingBottom="10dp"
+        android:background="@drawable/borderline_linear">
 
         <TextView
             android:id="@+id/txtTitleIndex"
@@ -68,46 +69,50 @@
             android:textSize="16sp"/>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layoutRecord"
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="330dp"
+        android:layout_height="300dp"
         android:layout_below="@id/layoutTitle"
         android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
-        android:paddingTop="10dp"
-        android:orientation="horizontal"
-        android:scrollbars="vertical"
-        android:background="@drawable/borderline_linear">
-        <TextView
-            android:id="@+id/txtRecordIndex"
-            android:layout_width="0dp"
+        android:paddingTop="10dp">
+        <LinearLayout
+            android:id="@+id/layoutRecord"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="01"
-            android:textSize="16sp"/>
+            android:weightSum="3"/>
+        <!--        <TextView-->
+        <!--            android:id="@+id/txtRecordIndex"-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="3"-->
+        <!--            android:gravity="center"-->
+        <!--            android:text="01"-->
+        <!--            android:textSize="16sp"/>-->
 
-        <TextView
-            android:id="@+id/txtRecordRecord"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:gravity="center"
-            android:text="00:00.00"
-            android:textSize="16sp"/>
+        <!--        <TextView-->
+        <!--            android:id="@+id/txtRecordRecord"-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="3"-->
+        <!--            android:gravity="center"-->
+        <!--            android:text="00:00.00"-->
+        <!--            android:textSize="16sp"/>-->
 
-        <TextView
-            android:id="@+id/txtRecordTime"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:gravity="center"
-            android:text="00:00.00"
-            android:textSize="16sp"
-            android:textColor="@color/black"/>
+        <!--        <TextView-->
+        <!--            android:id="@+id/txtRecordTime"-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_weight="3"-->
+        <!--            android:gravity="center"-->
+        <!--            android:text="00:00.00"-->
+        <!--            android:textSize="16sp"-->
+        <!--            android:textColor="@color/black"/>-->
 
-    </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:id="@+id/groupButton"
@@ -137,4 +142,12 @@
             android:textSize="18sp"
             android:textColor="@color/white"/>
     </LinearLayout>
+    <Button
+        android:id="@+id/resetBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="초기화"
+        android:layout_centerInParent="true">
+    </Button>
 </RelativeLayout>

@@ -16,7 +16,8 @@
         android:gravity="center"
         android:text="00:00.00"
         android:textColor="@color/black"
-        android:textSize="50sp" />
+        android:textSize="50sp"
+        tools:ignore="HardcodedText" />
     <TextView
         android:id="@+id/txtSubTime"
         android:layout_width="match_parent"
@@ -25,7 +26,8 @@
         android:layout_marginTop="4dp"
         android:gravity="center"
         android:text="00:00.00"
-        android:textSize="30sp" />
+        android:textSize="30sp"
+        tools:ignore="HardcodedText" />
 
     <LinearLayout
         android:id="@+id/layoutTitle"
@@ -101,7 +103,8 @@
             android:background="@drawable/borderline_button_grey"
             android:text="@string/btnRecord"
             android:textSize="18sp"
-            android:textColor="@color/default_font_color"/>
+            android:textColor="@color/default_font_color"
+            tools:ignore="ButtonStyle" />
 
         <Button
             android:id="@+id/btnStart"
@@ -110,14 +113,7 @@
             android:background="@drawable/borderline_button_blue"
             android:text="@string/btnStart"
             android:textSize="18sp"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white"
+            tools:ignore="ButtonStyle" />
     </LinearLayout>
-    <Button
-        android:id="@+id/resetBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="초기화"
-        android:layout_centerInParent="true">
-    </Button>
 </RelativeLayout>

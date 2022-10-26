@@ -11,9 +11,11 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.jinsu.homework.stopwatch.databinding.ActivityMainBinding
+import kotlinx.coroutines.NonCancellable.start
 import java.text.DecimalFormat
 import java.util.*
 import kotlin.concurrent.timer
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "Main Activity : onCreate() called!")
+
         binding = ActivityMainBinding.inflate(layoutInflater).also {
             setContentView(it.root)
         }
@@ -44,30 +47,19 @@ class MainActivity : AppCompatActivity() {
         // 각 버튼에 이벤트 리스너 부착
         with(binding) {
             btnStart.setOnClickListener {
-                isRunning = !isRunning              // 시작 버튼을 누르면 상태가 반대 값으로 변경
-
+                isRunning = !isRunning
                 Log.d(TAG, "btnStart clicked! and state : $isRunning")
                 if (isRunning) start() else pause()
             }
-            /*btnRecord.setOnClickListener {
-            // TODO: 구간기록/초기화 버튼 리스너
-                // 처음 : 구간 기록인데 focusable = false
-                if  (isRunning) {   // not start 상태인데
-                    if (repeatedTime != 0) {
-                        it.isClickable = false
-                    } else {    // not start 인데 시작은 했다면
-                        reset()
-                    }
-                } else {
-                    checkLapTime()
-                }
-            }*/
-
-            // 삭제 예정
             btnRecord.setOnClickListener {
-                checkLapTime()
+                if (!isRunning) {
+                    if (mainTime == 0)
+                        btnRecord.isFocusableInTouchMode = false    // 타이머 실행하지 않은 상태라면 구간 기록 클릭 불가
+                    else
+                        reset()
+                } else
+                    checkLapTime()
             }
-            resetBtn.setOnClickListener { reset() }
         }
     }
 
@@ -79,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         with(binding) {
             btnStart.text = "중지"
             btnStart.setBackgroundResource(R.drawable.borderline_button_red)
+            btnRecord.text = "구간기록"
             btnRecord.setTextColor(Color.BLACK)
         }
 
@@ -105,9 +98,10 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "pause() called!")
 
         // 중지 버튼 클릭 시 레이아웃 초기화
-        with(binding.btnStart) {
-            text = "계속"
-            setBackgroundResource(R.drawable.borderline_button_blue)
+        with(binding) {
+            btnStart.text = "계속"
+            btnStart.setBackgroundResource(R.drawable.borderline_button_blue)
+            btnRecord.text = "초기화"
         }
         timerTask?.cancel()
     }

@@ -4,26 +4,19 @@
 
 package com.jinsu.homework.stopwatch
 
-import android.R.layout
 import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.LinearLayout.LayoutParams
-import android.widget.RelativeLayout
-import android.widget.RelativeLayout.RIGHT_OF
+import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.jinsu.homework.stopwatch.databinding.ActivityMainBinding
-import kotlinx.coroutines.NonCancellable.start
 import java.text.DecimalFormat
 import java.util.*
 import kotlin.concurrent.timer
-
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -40,12 +33,15 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater).also {
             setContentView(it.root)
         }
+
+        // 최초 실행 시 구간 기록 부분 invisible 상태로 초기화
         with(binding) {
             txtSubTime.isVisible = false
             layoutTitle.isVisible = false
-            layoutRecord.isVisible = false
+            itemViewContainer.isVisible = false
         }
 
+        // 각 버튼에 이벤트 리스너 부착
         with(binding) {
             btnStart.setOnClickListener {
                 isRunning = !isRunning              // 시작 버튼을 누르면 상태가 반대 값으로 변경
@@ -53,8 +49,8 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "btnStart clicked! and state : $isRunning")
                 if (isRunning) start() else pause()
             }
-            // TODO: 구간기록/초기화 버튼 리스너
             /*btnRecord.setOnClickListener {
+            // TODO: 구간기록/초기화 버튼 리스너
                 // 처음 : 구간 기록인데 focusable = false
                 if  (isRunning) {   // not start 상태인데
                     if (repeatedTime != 0) {
@@ -67,92 +63,26 @@ class MainActivity : AppCompatActivity() {
                 }
             }*/
 
-
-
+            // 삭제 예정
             btnRecord.setOnClickListener {
                 checkLapTime()
             }
             resetBtn.setOnClickListener { reset() }
         }
-
-
     }
 
-
-
-
-
-    @SuppressLint("ResourceType", "SetTextI18n")
-    private fun checkLapTime() {
-        Log.d(TAG, "checkLapTime() called!")
-        val position = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 1F)
-
-
-        // 구간 기록 view 화면에 보이도록 설정
-        with(binding) {
-            txtSubTime.isVisible = true
-            layoutTitle.isVisible = true
-            layoutRecord.isVisible = true
-        }
-
-        if (lapIndex == 0)
-            lapTime = mainTime
-
-
-        lapIndex++
-        binding.btnStart.text = lapIndex.toString()
-
-
-
-
-        val txtIndex = TextView(this).apply {
-            textSize = 16f
-            text = formatter.format(lapIndex)
-        }
-        val txtLapTime = TextView(this).apply {
-            textSize = 16f
-            text = "랩타임"
-        }
-        val txtTotalTime = TextView(this).apply {
-            textSize = 16f
-            text = "전체시간"
-        }
-
-
-
-
-        with(binding.layoutRecord) {
-            addView(txtIndex, 0)
-            addView(txtLapTime, -1)
-            addView(txtTotalTime, -1)
-        }
-        lapTime = 0
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // isRunning = true 상태
     @SuppressLint("SetTextI18n")
     private fun start() {
         Log.d(TAG, "start() called!")
+
+        // 시작버튼 클릭 시 레이아웃 초기화
         with(binding) {
             btnStart.text = "중지"
             btnStart.setBackgroundResource(R.drawable.borderline_button_red)
             btnRecord.setTextColor(Color.BLACK)
         }
 
-        timerTask = timer(period = 1000) {  // period = 1000, 1초
+        timerTask = timer(period = 1000) {  // period = 1000 = 1초
             mainTime++
             lapTime++
             val secTotal = formatter.format(mainTime % 60)
@@ -163,15 +93,18 @@ class MainActivity : AppCompatActivity() {
             val minLap = formatter.format(lapTime / 60)
             val hourLap = formatter.format(lapTime / 3600)
 
+            // UI 작업
             runOnUiThread {
                 binding.txtMainTime.text = """$hourTotal:$minTotal.$secTotal"""
                 binding.txtSubTime.text = """$hourLap:$minLap.$secLap"""
             }
         }
     }
-    // isRunning = false 상태
+
     private fun pause() {
         Log.d(TAG, "pause() called!")
+
+        // 중지 버튼 클릭 시 레이아웃 초기화
         with(binding.btnStart) {
             text = "계속"
             setBackgroundResource(R.drawable.borderline_button_blue)
@@ -183,14 +116,13 @@ class MainActivity : AppCompatActivity() {
     private fun reset() {
         Log.d(TAG, "reset() called!")
 
-
-        // 초기화 부분
+        // 초기 상태로 초기화
         timerTask?.cancel()
         mainTime = 0
         lapTime = 0
         lapIndex = 0
 
-        // view 초기상태로 변경
+        // 레이아웃 초기화
         with(binding) {
             btnStart.text = "시작"
             btnStart.setBackgroundResource(R.drawable.borderline_button_blue)
@@ -198,9 +130,9 @@ class MainActivity : AppCompatActivity() {
             txtMainTime.post {
                 txtMainTime.text = "00:00.00"
 
-                // 구간 기록 내 view 제거
-                layoutRecord.removeAllViews()
-                layoutRecord.invalidate()
+                // 구간 기록(ScrollView) 내 view 제거
+                itemViewContainer.removeAllViews()
+                itemViewContainer.invalidate()
             }
         }
 
@@ -208,7 +140,51 @@ class MainActivity : AppCompatActivity() {
         with(binding) {
             txtSubTime.isVisible = false
             layoutTitle.isVisible = false
-            layoutRecord.isVisible = false
+            itemViewContainer.isVisible = false
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun checkLapTime() {
+        Log.d(TAG, "checkLapTime() called!")
+
+        // init
+        val container = binding.itemViewContainer
+        val inflater = LayoutInflater.from(this@MainActivity)
+        val itemView = inflater.inflate(R.layout.item_view, container, false)
+        val txtIndex = itemView.findViewById<TextView>(R.id.txtRecordIndex)
+        val txtLapTime = itemView.findViewById<TextView>(R.id.txtRecordRecord)
+        val txtTotalTime = itemView.findViewById<TextView>(R.id.txtRecordTime)
+
+        if (lapIndex == 0)
+            lapTime = mainTime   // 구간 기록 최초 실행 시 전체 시간과 동기화
+
+        lapIndex++  // 구간 기록 버튼 클릭마다 순번 증가
+
+        // 구간 기록 view 화면에 보이도록 설정
+        with(binding) {
+            txtSubTime.isVisible = true
+            layoutTitle.isVisible = true
+            itemViewContainer.isVisible = true
+        }
+
+        // ScrollView 내 Child 각 학목의 text 설정
+        with(txtIndex) {
+            text = formatter.format(lapIndex)
+            textSize = 16f
+        }
+        with(txtLapTime) {
+            text =
+                """${formatter.format(lapTime / 3600)}:${formatter.format(lapTime / 60)}.${formatter.format(lapTime % 60)}"""
+            textSize = 16f
+        }
+        with(txtTotalTime) {
+            text =
+                """${formatter.format(mainTime / 3600)}:${formatter.format(mainTime / 60)}.${formatter.format(mainTime % 60)}"""
+            textSize = 16f
+        }
+        container.addView(itemView, 0)
+
+        lapTime = 0 // 기록 출력 후 측정 된 구간 기록 초기화
     }
 }

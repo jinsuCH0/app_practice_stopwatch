@@ -1,6 +1,16 @@
 /*
 * 조진수
 * */
+/*
+* ToDo List add date 10/30
+* 구간 기록 부분 fragment 로 바꾸기
+* 구간 기록 부분 recycler view  활용하기
+* 버튼 디자인 바꾸는 부분 함수로 빼내기
+* 필요하다면 requireContext(), Parcelable 활용하고 개념 익히기
+* 최대한 기능 별로 나눠서 함수 구현하기(함수 내 블럭 15~20줄 넘지 않도록)
+* 함수가 너무 많으면 내부, 익명클래스, 인터페이스, 람다 활용하기
+*
+* */
 
 package com.jinsu.homework.stopwatch
 
